@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chaos Control++</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>Control the Chaos</h2>
+  <ul>
+    <li onclick="showSection('events')">📅 Events</li>
+    <li onclick="showSection('tasks')">📝 Tasks</li>
+    <li onclick="showSection('notifications')">🔔 Notifications</li>
+  </ul>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="header">
+  <h1>Dashboard</h1>
+
+  <div id="userProfile">
+    👤 <span id="userEmail">Loading...</span>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+  <!-- EVENTS -->
+  <div id="events" class="section active">
+    <h2>Events</h2>
+
+    <div class="card">
+      <input type="text" id="eventName" placeholder="Event name">
+      <button onclick="createEvent()">Create Event</button>
+    </div>
+
+    <div id="eventList" class="grid"></div>
+  </div>
+
+  <!-- TASKS -->
+  <div id="tasks" class="section">
+    <h2>Tasks</h2>
+
+    <div class="card">
+      <input type="text" id="taskName" placeholder="Task name">
+      <button onclick="createTask()">Add Task</button>
+    </div>
+
+    <div id="taskList" class="grid"></div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div id="notifications" class="section">
+    <h2>Notifications</h2>
+    <ul id="notifList"></ul>
+  </div>
+
+  <div class="section active" id="calendarSection">
+  <h2>📅 Calendar</h2>
+  <div id="calendar"></div>
+</div>
+<!-- PROFILE -->
+<div>
+  <h3>Profile</h3>
+
+  <p>Email: <span id="userEmail"></span></p>
+
+  <input id="name" placeholder="Enter name">
+  <button onclick="updateProfile()">Update Profile</button>
+</div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+</body>
+</html>
