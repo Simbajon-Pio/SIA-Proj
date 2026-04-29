@@ -4,11 +4,13 @@
   <title>Chaos Control++</title>
 </head>
 <body>
-<input id="email" type="email">
-<input id="password" type="password">
+<form onsubmit="handleLogin(event)">
+  <input id="email" type="email" placeholder="Email" required>
+  <input id="password" type="password" placeholder="Password" required>
 
-<button onclick="login()">Login</button>
-<button onclick="register()">Register</button>
+  <button type="submit">Login</button>
+  <button type="button" onclick="register()">Register</button>
+</form>
 
   <script type="module" src="app.js"></script>
 </body>

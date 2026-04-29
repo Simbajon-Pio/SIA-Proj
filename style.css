@@ -114,3 +114,14 @@ body {
   border-radius: 5px;
   cursor: pointer;
 }
+
+#profileSection {
+  max-width: 400px;
+  margin: auto;
+}
+
+#profileSection input {
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+}

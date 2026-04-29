@@ -4,14 +4,18 @@ import {
   collection,
   addDoc,
   onSnapshot,
-  getDocs
+  getDocs,
+  doc,
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  signOut,
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 window.logout = async function () {
@@ -162,6 +166,21 @@ window.login = async function () {
   }
 };
 
+window.handleLogin = async function (event) {
+  event.preventDefault(); // 🚫 prevents page reload
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Login successful!");
+    window.location.href = "dashboard.html";
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
 // ==========================
 // 📝 REGISTER
 // ==========================
@@ -182,16 +201,40 @@ window.register = async function () {
 // ==========================
 // 🔄 AUTH STATE CHECK
 // ==========================
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   const isDashboard = window.location.pathname.includes("dashboard.html");
 
   if (!user && isDashboard) {
-    alert("You must login first!");
     window.location.href = "index.html";
+    return;
   }
 
   if (user) {
     console.log("Logged in as:", user.email);
+
+    // Header email
+    const emailDisplay = document.getElementById("userEmail");
+    if (emailDisplay) {
+      emailDisplay.textContent = user.email;
+    }
+
+    // Profile email
+    const profileEmail = document.getElementById("profileEmail");
+    if (profileEmail) {
+      profileEmail.textContent = user.email;
+    }
+
+    // Load profile data
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const nameInput = document.getElementById("profileName");
+      if (nameInput) {
+        nameInput.value = data.name || "";
+      }
+    }
   }
 });
 
@@ -240,15 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    const emailDisplay = document.getElementById("userEmail");
 
-    if (emailDisplay) {
-      emailDisplay.textContent = user.email;
-    }
-  }
-});
 
 //PROFILE
 // ==========================
@@ -265,6 +300,33 @@ window.updateProfile = async function () {
   });
 
   alert("Profile updated!");
+};
+
+
+
+window.saveProfile = async function () {
+  const user = auth.currentUser;
+  const name = document.getElementById("profileName").value;
+
+  if (!user) return alert("Not logged in");
+
+  try {
+    await setDoc(doc(db, "users", user.uid), {
+      name: name,
+      email: user.email,
+      role: "participant",
+      updatedAt: new Date()
+    }, { merge: true }); // 🔥 keeps existing data
+
+    document.getElementById("profileStatus").textContent = "Profile saved!";
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+
+  await updateProfile(user, {
+  displayName: name
+});
 };
 
 onSnapshot(collection(db, "events"), (snapshot) => {
