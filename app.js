@@ -154,6 +154,8 @@ function initListeners() {
     const pending = allTasks.filter(t => t.status === 'Pending').length;
     document.getElementById('statDone').textContent = done;
     document.getElementById('statPending').textContent = pending;
+
+    updateCalendarEvents();
   });
 
   // NOTIFICATIONS
@@ -208,7 +210,45 @@ window.deleteEvent = async function(id, name) {
     showToast(`Event deleted`);
   } catch(e) { showToast(e.message, 'error'); }
 };
+window.openEditEventModal = function(id) {
+  // 1. Find the specific event
+  const e = allEvents.find(x => x.id === id);
+  if(!e) return;
 
+  // 2. Pre-fill the modal with the event's current data
+  document.getElementById('editEventId').value = e.id;
+  document.getElementById('editEventName').value = e.name || '';
+  document.getElementById('editEventDate').value = e.date || '';
+  document.getElementById('editEventLocation').value = e.location || '';
+
+  // 3. Show the modal
+  document.getElementById('editEventModal').style.display = 'flex';
+};
+
+window.saveEventEdit = async function() {
+  // 1. Grab the updated text from the inputs
+  const id = document.getElementById('editEventId').value;
+  const name = document.getElementById('editEventName').value.trim();
+  const date = document.getElementById('editEventDate').value;
+  const location = document.getElementById('editEventLocation').value.trim();
+
+  if (!name) return showToast('Enter an event name', 'error');
+
+  try {
+    // 2. Push the changes to Firebase
+    await updateDoc(doc(db, 'events', id), {
+      name: name,
+      date: date || null,
+      location: location || null
+    });
+    
+    // 3. Hide modal and notify the user
+    document.getElementById('editEventModal').style.display = 'none';
+    showToast('Event updated successfully!');
+  } catch(e) { 
+    showToast(e.message, 'error'); 
+  }
+};
 function renderEvents() {
   const grid  = document.getElementById('eventGrid');
   const empty = document.getElementById('eventEmpty');
@@ -232,8 +272,11 @@ function renderEvents() {
     <div class="event-card">
       <div class="event-card-header">
         <div class="event-dot"></div>
-        <span class="event-name">${escHtml(e.name)}</span>
-        <button class="btn-icon danger" onclick="deleteEvent('${e.id}','${escHtml(e.name)}')" title="Delete">🗑</button>
+        <span class="event-name" style="flex: 1;">${escHtml(e.name)}</span>
+        <div style="display:flex; gap:4px;">
+          <button class="btn-icon" onclick="openEditEventModal('${e.id}')" title="Edit">✏️</button>
+          <button class="btn-icon danger" onclick="deleteEvent('${e.id}','${escHtml(e.name)}')" title="Delete">🗑</button>
+        </div>
       </div>
       ${e.date ? `<div class="event-meta">📅 ${formatDate(e.date)}</div>` : ''}
       ${e.location ? `<div class="event-meta">📍 ${escHtml(e.location)}</div>` : ''}
@@ -330,11 +373,15 @@ function renderTasks() {
         <div class="task-title">${escHtml(t.title)}</div>
         <div class="task-meta">
           ${t.eventName ? `<span>📅 ${escHtml(t.eventName)}</span>` : ''}
+          ${t.dueDate ? `<span>⏱ ${formatDate(t.dueDate)}</span>` : ''}
           <span class="priority-badge ${pClass}">${t.priority}</span>
           <span>👤 ${t.assignedTo}</span>
         </div>
       </div>
-      <button class="btn-icon danger" onclick="deleteTask('${t.id}','${escHtml(t.title)}')" title="Delete">🗑</button>
+      <div style="display:flex; gap:4px;">
+        <button class="btn-icon" onclick="openEditTaskModal('${t.id}')" title="Edit">✏️</button>
+        <button class="btn-icon danger" onclick="deleteTask('${t.id}','${escHtml(t.title)}')" title="Delete">🗑</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -346,7 +393,45 @@ function populateEventDropdown() {
   sel.innerHTML = '<option value="">— Link to event —</option>' +
     allEvents.map(e => `<option value="${e.id}" ${e.id === current ? 'selected' : ''}>${escHtml(e.name)}</option>`).join('');
 }
+window.openEditTaskModal = function(id) {
+  // 1. Find the task in our downloaded array
+  const task = allTasks.find(t => t.id === id);
+  if (!task) return;
 
+  // 2. Put the task's current data into the Modal's input fields
+  document.getElementById('editTaskId').value = task.id;
+  document.getElementById('editTaskName').value = task.title || '';
+  document.getElementById('editTaskDueDate').value = task.dueDate || '';
+  document.getElementById('editTaskPriority').value = task.priority || 'Normal';
+
+  // 3. Show the Modal
+  document.getElementById('editTaskModal').style.display = 'flex';
+};
+
+window.saveTaskEdit = async function() {
+  // 1. Grab the updated values from the Modal
+  const id = document.getElementById('editTaskId').value;
+  const title = document.getElementById('editTaskName').value.trim();
+  const dueDate = document.getElementById('editTaskDueDate').value;
+  const priority = document.getElementById('editTaskPriority').value;
+
+  if (!title) return showToast('Enter a task description', 'error');
+
+  try {
+    // 2. Send the updated specific fields to Firestore
+    await updateDoc(doc(db, 'tasks', id), {
+      title: title,
+      dueDate: dueDate || null,
+      priority: priority
+    });
+    
+    // 3. Hide the modal and show a success message
+    document.getElementById('editTaskModal').style.display = 'none';
+    showToast('Task updated successfully!');
+  } catch(e) { 
+    showToast(e.message, 'error'); 
+  }
+};
 // ============================================================
 //  OVERVIEW
 // ============================================================
@@ -445,29 +530,78 @@ window.clearNotifications = async function() {
 // ============================================================
 //  CALENDAR
 // ============================================================
+// ============================================================
+//  CALENDAR
+// ============================================================
 function initCalendar() {
   const el = document.getElementById('calendarEl');
   if (!el || typeof FullCalendar === 'undefined') return;
+
+  // Helper function to combine events and tasks into one array for the calendar
+  const getCombinedCalendarData = () => {
+    const eventsData = allEvents
+      .filter(e => e.date)
+      .map(e => ({ 
+        title: e.name, 
+        start: e.date, 
+        id: e.id,
+        backgroundColor: 'var(--accent)', // Purple for events
+        borderColor: 'var(--accent)',
+        extendedProps: { type: 'event' } 
+      }));
+
+    const tasksData = allTasks
+      .filter(t => t.dueDate)
+      .map(t => ({ 
+        title: `✅ ${t.title}`, // Add a checkmark so it's obviously a task
+        start: t.dueDate, 
+        id: t.id,
+        backgroundColor: 'var(--warning)', // Orange/Yellow for tasks
+        borderColor: 'var(--warning)',
+        extendedProps: { type: 'task' } 
+      }));
+
+    return [...eventsData, ...tasksData];
+  };
 
   calendarInstance = new FullCalendar.Calendar(el, {
     initialView: 'dayGridMonth',
     selectable: true,
     editable: true,
+    
+    // 1. Handle Drag and Drop for BOTH Events and Tasks
     eventDrop: async function(info) {
-      try{
-        await updateDoc(doc(db, 'events', info.event.id), { date: info.dateStr });
-        showToast('Event moved');
-        addNotification(`Event "${info.event.title}" moved to ${info.dateStr}`);
+      const type = info.event.extendedProps.type;
+      try {
+        if (type === 'task') {
+          await updateDoc(doc(db, 'tasks', info.event.id), { dueDate: info.event.startStr });
+          showToast('Task deadline moved');
+        } else {
+          await updateDoc(doc(db, 'events', info.event.id), { date: info.event.startStr });
+          showToast('Event moved');
+        }
       } catch(e) {
+        info.revert(); // Snap it back if Firebase fails
         showToast(e.message, 'error');
-        addNotification(`Event "${info.event.title}" move failed`);
       }
-      },
+    },
+    
+    // 2. Handle Clicking to Edit BOTH Events and Tasks
+    eventClick: function(info) {
+      const type = info.event.extendedProps.type;
+      if (type === 'task') {
+        openEditTaskModal(info.event.id);
+      } else if (type === 'event') {
+        openEditEventModal(info.event.id);
+      }
+    },
+
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
       right: 'dayGridMonth,listWeek'
     },
+    
     dateClick: function(info) {
       const name = prompt('Event name for ' + info.dateStr + ':');
       if (name) {
@@ -481,18 +615,31 @@ function initCalendar() {
         });
       }
     },
-    events: allEvents
-      .filter(e => e.date)
-      .map(e => ({ title: e.name, start: e.date, id: e.id }))
+    
+    // 3. Load the combined data
+    events: getCombinedCalendarData()
   });
+  
   calendarInstance.render();
 }
 
 function updateCalendarEvents() {
   if (!calendarInstance) return;
+  
+  // Remove all existing items from the visual calendar
   calendarInstance.getEvents().forEach(e => e.remove());
-  allEvents.filter(e => e.date).forEach(e => {
-    calendarInstance.addEvent({ title: e.name, start: e.date, id: e.id });
+  
+  // Re-add the fresh combined data
+  const eventsData = allEvents.filter(e => e.date).map(e => ({ 
+    title: e.name, start: e.date, id: e.id, backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', extendedProps: { type: 'event' } 
+  }));
+  
+  const tasksData = allTasks.filter(t => t.dueDate).map(t => ({ 
+    title: `✅ ${t.title}`, start: t.dueDate, id: t.id, backgroundColor: 'var(--warning)', borderColor: 'var(--warning)', extendedProps: { type: 'task' } 
+  }));
+
+  [...eventsData, ...tasksData].forEach(item => {
+    calendarInstance.addEvent(item);
   });
 }
 

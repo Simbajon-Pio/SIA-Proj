@@ -265,6 +265,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script type="module" src="app.js"></script>
+
+
 <div id="editTaskModal" class="sidebar-overlay" style="display:none; align-items:center; justify-content:center; z-index:9999;">
   <div class="panel" style="width: 100%; max-width: 400px; position: relative;">
     <h3>Edit Task</h3>
@@ -281,6 +283,33 @@
     <div style="display: flex; gap: 10px; margin-top: 10px;">
       <button class="btn-accent" onclick="saveTaskEdit()" style="flex:1">Save</button>
       <button class="btn-link" onclick="document.getElementById('editTaskModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="editEventModal" class="sidebar-overlay" style="display:none; align-items:center; justify-content:center; z-index:9999;">
+  <div class="panel" style="width: 100%; max-width: 400px; position: relative;">
+    <h3>Edit Event</h3>
+    <input type="hidden" id="editEventId">
+    
+    <div class="form-group">
+      <label>Event Name</label>
+      <input type="text" id="editEventName" class="form-input">
+    </div>
+    
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="editEventDate" class="form-input">
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="editEventLocation" class="form-input" placeholder="e.g. Room 402">
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button class="btn-accent" onclick="saveEventEdit()" style="flex:1">Save Changes</button>
+      <button class="btn-link" onclick="document.getElementById('editEventModal').style.display='none'">Cancel</button>
     </div>
   </div>
 </div>
