@@ -83,6 +83,7 @@ function closeSidebar() {
 window.handleLogout = async function() {
   try {
     await signOut(auth);
+    sessionStorage.setItem('loggedOut', 'true');
     window.location.href = 'index.html';
   } catch (e) {
     showToast(e.message, 'error');

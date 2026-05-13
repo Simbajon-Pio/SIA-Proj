@@ -265,9 +265,17 @@
   import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
   import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // Redirect if already logged in
+  // Redirect if already logged in — but only after Firebase has resolved,
+  // not on every page load (prevents flash-redirect on index)
   onAuthStateChanged(auth, (user) => {
-    if (user) window.location.href = 'dashboard.html';
+    // Only auto-redirect if the user explicitly has a persisted session
+    // AND they landed on the login page (not via logout)
+    const cameFromLogout = sessionStorage.getItem('loggedOut');
+    if (user && !cameFromLogout) {
+      window.location.href = 'dashboard.html';
+    }
+    // Clear the flag after checking
+    sessionStorage.removeItem('loggedOut');
   });
 
   window.switchTab = function(tab) {
