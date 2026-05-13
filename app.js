@@ -178,7 +178,7 @@ function updateBadge(id, count) {
 // ============================================================
 //  EVENTS
 // ============================================================
-window.createEvent = async function() {
+window.createNewEvent = async function() {
   const name     = document.getElementById('eventName').value.trim();
   const date     = document.getElementById('eventDate').value;
   const location = document.getElementById('eventLocation').value.trim();
@@ -257,6 +257,7 @@ window.createTask = async function() {
   const title    = document.getElementById('taskName').value.trim();
   const eventId  = document.getElementById('taskEvent').value;
   const priority = document.getElementById('taskPriority').value;
+  const dueDate = document.getElementById('taskDueDate').value;
   const user     = auth.currentUser;
 
   if (!title) return showToast('Enter a task name', 'error');
@@ -270,6 +271,7 @@ window.createTask = async function() {
       assignedTo: user.email,
       priority: priority || 'Normal',
       status: 'Pending',
+      dueDate: dueDate || null,
       createdAt: serverTimestamp()
     });
     document.getElementById('taskName').value = '';
@@ -450,6 +452,17 @@ function initCalendar() {
   calendarInstance = new FullCalendar.Calendar(el, {
     initialView: 'dayGridMonth',
     selectable: true,
+    editable: true,
+    eventDrop: async function(info) {
+      try{
+        await updateDoc(doc(db, 'events', info.event.id), { date: info.dateStr });
+        showToast('Event moved');
+        addNotification(`Event "${info.event.title}" moved to ${info.dateStr}`);
+      } catch(e) {
+        showToast(e.message, 'error');
+        addNotification(`Event "${info.event.title}" move failed`);
+      }
+      },
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
@@ -536,3 +549,15 @@ function timeAgo(date) {
   if (s < 86400) return `${Math.floor(s/3600)}h ago`;
   return `${Math.floor(s/86400)}d ago`;
 }
+
+// Add this anywhere in app.js
+window.toggleTheme = function() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+};
+
+// Add this to the very bottom of app.js to remember the user's choice
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);

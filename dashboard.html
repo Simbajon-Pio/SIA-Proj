@@ -41,6 +41,9 @@
       <span class="nav-icon">👤</span> <span>Profile</span>
     </a>
   </nav>
+    <a class="nav-item" onclick="toggleTheme()">
+      <span class="nav-icon">🌗</span> <span>Toggle Theme</span>
+    </a>
 
   <div class="sidebar-footer">
     <div class="user-chip">
@@ -135,7 +138,7 @@
         <input type="text" id="eventName" placeholder="Event name…" class="form-input">
         <input type="date" id="eventDate" class="form-input" style="max-width:180px">
         <input type="text" id="eventLocation" placeholder="Location (optional)" class="form-input">
-        <button class="btn-accent" onclick="createEvent()">+ Add Event</button>
+        <button class="btn-accent" onclick="createNewEvent()">+ Add Event</button>
       </div>
     </div>
 
@@ -163,6 +166,7 @@
       <div class="panel-header"><h3>Add New Task</h3></div>
       <div class="form-row">
         <input type="text" id="taskName" placeholder="Task description…" class="form-input">
+        <input type="date" id="taskDueDate" class="form-input" style="max-width:160px">
         <select id="taskEvent" class="form-input form-select" style="max-width:220px">
           <option value="">— Link to event —</option>
         </select>
@@ -261,5 +265,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script type="module" src="app.js"></script>
+<div id="editTaskModal" class="sidebar-overlay" style="display:none; align-items:center; justify-content:center; z-index:9999;">
+  <div class="panel" style="width: 100%; max-width: 400px; position: relative;">
+    <h3>Edit Task</h3>
+    <input type="hidden" id="editTaskId">
+    <div class="form-group"><input type="text" id="editTaskName" class="form-input"></div>
+    <div class="form-group"><input type="date" id="editTaskDueDate" class="form-input"></div>
+    <div class="form-group">
+      <select id="editTaskPriority" class="form-input form-select">
+        <option value="Normal">Normal</option>
+        <option value="High">High</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+      <button class="btn-accent" onclick="saveTaskEdit()" style="flex:1">Save</button>
+      <button class="btn-link" onclick="document.getElementById('editTaskModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

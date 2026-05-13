@@ -24,6 +24,17 @@
   --radius:    12px;
   --radius-sm: 8px;
 }
+/* Light Theme Overrides */
+:root[data-theme="light"] {
+  --bg:        #f9fafb;
+  --surface:   #ffffff;
+  --surface2:  #f3f4f6;
+  --border:    #e5e7eb;
+  --border2:   #d1d5db;
+  --text:      #111827;
+  --text2:     #4b5563;
+  --muted:     #9ca3af;
+}
 
 /* ============================================================
    BASE
