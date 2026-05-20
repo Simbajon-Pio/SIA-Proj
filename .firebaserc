@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "chaos-control-fa3dc",
+    "production": "controlingchaos"
+  },
+  "targets": {},
+  "etags": {}
+}

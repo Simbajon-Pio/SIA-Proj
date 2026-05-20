@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chaos Control — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <img src="logov2.png" class="sidebar-logo-img" style="width: 90px; height: auto; margin: 0 auto;">
+    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item active" onclick="showSection('overview')" data-section="overview">
+      <span class="nav-icon">🏠</span> <span>Overview</span>
+    </a>
+    <a class="nav-item" onclick="showSection('discover')" data-section="discover">
+      <span class="nav-icon">🌐</span> <span>Discover</span>
+    </a>
+    <a class="nav-item" onclick="showSection('events')" data-section="events">
+      <span class="nav-icon">📅</span> <span>Events</span>
+      <span class="nav-badge" id="eventsCount">0</span>
+    </a>
+    <a class="nav-item" onclick="showSection('tasks')" data-section="tasks">
+      <span class="nav-icon">✅</span> <span>Tasks</span>
+      <span class="nav-badge" id="tasksCount">0</span>
+    </a>
+    <a class="nav-item" onclick="showSection('calendar')" data-section="calendar">
+      <span class="nav-icon">📆</span> <span>Calendar</span>
+    </a>
+    <a class="nav-item" onclick="showSection('notifications')" data-section="notifications">
+      <span class="nav-icon">🔔</span> <span>Notifications</span>
+      <span class="nav-badge unread" id="notifCount" style="display:none">0</span>
+    </a>
+    <a class="nav-item" onclick="showSection('profile')" data-section="profile">
+      <span class="nav-icon">👤</span> <span>Profile</span>
+    </a>
+  </nav>
+    <a class="nav-item" onclick="toggleTheme()">
+      <span class="nav-icon">🌗</span> <span>Toggle Theme</span>
+    </a>
+
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar" id="sidebarAvatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">Loading…</div>
+        <div class="user-role">Organizer</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- MOBILE OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="pageTitle">Overview</div>
+    <div class="topbar-right">
+      <div class="notif-btn" onclick="showSection('notifications')">
+        🔔 <span class="notif-dot" id="notifDot" style="display:none"></span>
+      </div>
+      <div class="topbar-avatar" id="topbarAvatar">?</div>
+    </div>
+  </header>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ===== OVERVIEW ===== -->
+  <section id="overview" class="section active">
+    <div class="page-header">
+      <h2>Good to see you, <span id="greetName">there</span> 👋</h2>
+      <p class="page-sub">Here's what's happening with your events.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(108,99,255,0.15);color:#6c63ff">📅</div>
+        <div class="stat-value" id="statEvents">—</div>
+        <div class="stat-label">Total Events</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#10b981">✅</div>
+        <div class="stat-value" id="statDone">—</div>
+        <div class="stat-label">Tasks Done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b">⏳</div>
+        <div class="stat-value" id="statPending">—</div>
+        <div class="stat-label">Tasks Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#ef4444">🔔</div>
+        <div class="stat-value" id="statNotifs">—</div>
+        <div class="stat-label">Notifications</div>
+      </div>
+    </div>
+
+    <div class="overview-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Recent Events</h3>
+          <button class="btn-link" onclick="showSection('events')">View all →</button>
+        </div>
+        <div id="recentEvents" class="item-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Pending Tasks</h3>
+          <button class="btn-link" onclick="showSection('tasks')">View all →</button>
+        </div>
+        <div id="recentTasks" class="item-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== EVENTS ===== -->
+  <section id="events" class="section">
+    <div class="page-header">
+      <h2>Events</h2>
+      <p class="page-sub">Create and manage your events.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>Create New Event</h3></div>
+      <div class="form-row">
+        <input type="text" id="eventName" placeholder="Event name…" class="form-input">
+        <input type="date" id="eventDate" class="form-input" style="max-width:180px">
+        <input type="text" id="eventLocation" placeholder="Location (optional)" class="form-input">
+      </div>
+      
+      <textarea id="eventDescription" class="form-input" placeholder="Event description, agendas, or dress codes..." rows="2" style="margin-top: 10px; width: 100%; resize: vertical;"></textarea>
+      
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="eventIsPublic" style="width: auto;">
+          <label for="eventIsPublic" style="color: #a0a0a0; font-size: 0.9rem;">Make Public</label>
+        </div>
+        <button class="btn-accent" onclick="createNewEvent()">+ Add Event</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>All Events</h3>
+        <input type="text" id="eventSearch" placeholder="Search…" class="search-input" oninput="filterEvents()">
+      </div>
+      <div id="eventGrid" class="event-grid"></div>
+      <div id="eventEmpty" class="empty-state" style="display:none">
+        <div style="font-size:48px">📅</div>
+        <p>No events yet. Create your first one above!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TASKS ===== -->
+  <section id="tasks" class="section">
+    <div class="page-header">
+      <h2>Tasks</h2>
+      <p class="page-sub">Track and manage your event tasks.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h3>Add New Task</h3></div>
+      <div class="form-row">
+        <input type="text" id="taskName" placeholder="Task description…" class="form-input">
+        <input type="date" id="taskDueDate" class="form-input" style="max-width:160px">
+        <select id="taskEvent" class="form-input form-select" style="max-width:220px">
+          <option value="">— Link to event —</option>
+        </select>
+        <select id="taskPriority" class="form-input form-select" style="max-width:140px">
+          <option value="Normal">Normal</option>
+          <option value="High">High</option>
+          <option value="Low">Low</option>
+        </select>
+        <button class="btn-accent" onclick="createTask()">+ Add Task</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>All Tasks</h3>
+        <div class="filter-tabs" id="taskFilter">
+          <button class="ftab active" onclick="filterTasks('all', this)">All</button>
+          <button class="ftab" onclick="filterTasks('Pending', this)">Pending</button>
+          <button class="ftab" onclick="filterTasks('Done', this)">Done</button>
+        </div>
+      </div>
+      <div id="taskGrid" class="task-list"></div>
+      <div id="taskEmpty" class="empty-state" style="display:none">
+        <div style="font-size:48px">✅</div>
+        <p>No tasks yet. Add your first task above!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CALENDAR ===== -->
+  <section id="calendar" class="section">
+    <div class="page-header">
+      <h2>Calendar</h2>
+      <p class="page-sub">Visual overview of your events.</p>
+    </div>
+    <div class="panel">
+      <div id="calendarEl"></div>
+    </div>
+  </section>
+
+  <!-- ===== NOTIFICATIONS ===== -->
+  <section id="notifications" class="section">
+    <div class="page-header">
+      <h2>Notifications</h2>
+      <p class="page-sub">Stay up to date with your activity.</p>
+    </div>
+    <div class="panel-header">
+        <h3>All Notifications</h3>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-link" onclick="markAllRead()">Read all</button>
+          <button class="btn-link danger-text" onclick="clearNotifications()">Clear all</button>
+        </div>
+      </div>
+      <div id="notifList" class="notif-list"></div>
+      <div id="notifEmpty" class="empty-state" style="display:none">
+        <div style="font-size:48px">🔔</div>
+        <p>No notifications yet.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROFILE ===== -->
+  <section id="profile" class="section">
+    <div class="page-header">
+      <h2>Profile</h2>
+      <p class="page-sub">Manage your account details.</p>
+    </div>
+    <div class="panel" style="max-width:480px">
+      <div class="profile-avatar-row">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div>
+          <div class="profile-name" id="profileDisplayName">—</div>
+          <div class="profile-email-display" id="profileEmail">—</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="form-group">
+        <label>Display Name</label>
+        <input type="text" id="profileName" class="form-input" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label>Email (read-only)</label>
+        <input type="text" id="profileEmailInput" class="form-input" disabled style="opacity:0.5">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="profileRole" class="form-input form-select">
+          <option value="organizer">Organizer</option>
+          <option value="participant">Participant</option>
+        </select>
+      </div>
+      <button class="btn-accent" style="width:100%" onclick="saveProfile()">Save Profile</button>
+      <p class="profile-status" id="profileStatus"></p>
+    </div>
+  </section>
+
+  <!-- ===== DISCOVER ===== -->
+<section id="discover" class="section">
+    <div class="page-header">
+      <h2>Discover Events</h2>
+      <p class="page-sub">Browse and join public events.</p>
+    </div>
+    <div class="panel">
+      <div id="discoverGrid" class="event-grid"></div>
+      <div id="discoverEmpty" class="empty-state" style="display:none">
+        <div style="font-size:48px">🌐</div>
+        <p>No public events available right now.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script type="module" src="app.js"></script>
+
+
+<div id="editTaskModal" class="sidebar-overlay" style="display:none; align-items:center; justify-content:center; z-index:9999;">
+  <div class="panel" style="width: 100%; max-width: 400px; position: relative;">
+    <h3>Edit Task</h3>
+    <input type="hidden" id="editTaskId">
+    <div class="form-group"><input type="text" id="editTaskName" class="form-input"></div>
+    <div class="form-group"><input type="date" id="editTaskDueDate" class="form-input"></div>
+    <div class="form-group">
+      <select id="editTaskPriority" class="form-input form-select">
+        <option value="Normal">Normal</option>
+        <option value="High">High</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+      <button class="btn-accent" onclick="saveTaskEdit()" style="flex:1">Save</button>
+      <button class="btn-link" onclick="document.getElementById('editTaskModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="editEventModal" class="sidebar-overlay" style="display:none; align-items:center; justify-content:center; z-index:9999;">
+  <div class="panel" style="width: 100%; max-width: 450px; position: relative;">
+    <h3>Edit Event</h3>
+    <input type="hidden" id="editEventId">
+    
+    <div class="form-group">
+      <label>Event Name</label>
+      <input type="text" id="editEventName" class="form-input">
+    </div>
+    
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="editEventDate" class="form-input">
+    </div>
+    
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="editEventLocation" class="form-input" placeholder="e.g. Room 402">
+    </div>
+
+    <div class="form-group">
+      <label>Description (Optional)</label>
+      <textarea id="editEventDescription" class="form-input" rows="3" style="resize: vertical; font-family: inherit;"></textarea>
+    </div>
+
+    <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+      <input type="checkbox" id="editEventIsPublic" style="width: auto;">
+      <label for="editEventIsPublic" style="color: #a0a0a0; font-size: 0.9rem;">Make this event Public (Visible on Discover Tab)</label>
+    </div>
+
+    <div class="form-group" style="margin-top: 15px;">
+      <label style="color: var(--accent); font-weight: 600;">Guest Responses</label>
+      <div id="modalRsvpList" style="max-height: 120px; overflow-y: auto; background: var(--surface2); padding: 10px; border-radius: 6px; margin-top: 5px; font-size: 0.85rem;">
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button class="btn-accent" onclick="saveEventEdit()" style="flex:1">Save Changes</button>
+      <button class="btn-link" onclick="document.getElementById('editEventModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

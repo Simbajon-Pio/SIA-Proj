@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chaos Control — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c10;
+      --surface: #12151c;
+      --border: #1e2330;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --success: #10b981;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    .bg-orbs {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: var(--accent); top: -150px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; right: -80px; animation-delay: -4s; }
+    .orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 40%; left: 40%; animation-delay: -8s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.08); }
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      width: 420px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .logo-img {
+      width: 150px;
+      height: auto;
+      display: block;
+      margin: 0 auto 10px auto;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    .logo-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+      box-shadow: 0 0 40px rgba(108,99,255,0.4);
+    }
+    .logo h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px; font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .tab {
+      flex: 1; text-align: center;
+      padding: 9px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px; font-weight: 500;
+      color: var(--muted);
+      transition: all 0.2s;
+      border: none; background: none;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 12px; font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    }
+    input::placeholder { color: var(--muted); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px; font-weight: 600;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-top: 6px;
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .error-msg {
+      background: rgba(255,101,132,0.12);
+      border: 1px solid rgba(255,101,132,0.3);
+      color: var(--accent2);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    .success-msg {
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--success);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .success-msg.show { display: block; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+      display: none;
+    }
+    .loading .spinner { display: inline-block; }
+    .loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    [data-form="register"] { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="container">
+  <div class="logo">
+    <img src="logov2.png" alt="Chaos Control Logo" class="logo-img" />
+    <p font-size="16px">Event management, simplified</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="tab" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div data-form="login">
+      <div class="error-msg" id="loginError"></div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" id="loginBtn" onclick="handleLogin()">
+        <span class="spinner"></span>
+        <span class="btn-text">Sign In</span>
+      </button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div data-form="register">
+      <div class="error-msg" id="registerError"></div>
+      <div class="success-msg" id="registerSuccess">Account created! You can now sign in.</div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="registerName" placeholder="John Doe">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="registerEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="registerPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+      </div>
+      <button class="btn-primary" id="registerBtn" onclick="handleRegister()">
+        <span class="spinner"></span>
+        <span class="btn-text">Create Account</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth, db } from './firebase.js';
+  import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // Redirect if already logged in — but only after Firebase has resolved,
+  // not on every page load (prevents flash-redirect on index)
+  onAuthStateChanged(auth, (user) => {
+    // Only auto-redirect if the user explicitly has a persisted session
+    // AND they landed on the login page (not via logout)
+    const cameFromLogout = sessionStorage.getItem('loggedOut');
+    if (user && !cameFromLogout) {
+      window.location.href = 'dashboard.html';
+    }
+    // Clear the flag after checking
+    sessionStorage.removeItem('loggedOut');
+  });
+
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    document.querySelector('[data-form="login"]').style.display = tab === 'login' ? 'block' : 'none';
+    document.querySelector('[data-form="register"]').style.display = tab === 'register' ? 'block' : 'none';
+  };
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.classList.toggle('loading', loading);
+  }
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  window.handleLogin = async function() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) return showError('loginError', 'Please fill in all fields.');
+    setLoading('loginBtn', true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = 'dashboard.html';
+    } catch (e) {
+      showError('loginError', e.code === 'auth/invalid-credential' ? 'Invalid email or password.' : e.message);
+      setLoading('loginBtn', false);
+    }
+  };
+
+  window.handleRegister = async function() {
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    if (!name || !email || !password) return showError('registerError', 'Please fill in all fields.');
+    if (password.length < 6) return showError('registerError', 'Password must be at least 6 characters.');
+    setLoading('registerBtn', true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
+      await setDoc(doc(db, 'users', cred.user.uid), { name, email, role: 'organizer', createdAt: new Date() });
+      document.getElementById('registerSuccess').classList.add('show');
+      setTimeout(() => { switchTab('login'); document.getElementById('registerSuccess').classList.remove('show'); }, 2000);
+    } catch (e) {
+      showError('registerError', e.code === 'auth/email-already-in-use' ? 'Email already in use.' : e.message);
+    }
+    setLoading('registerBtn', false);
+  };
+
+  // Enter key support
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const active = document.querySelector('[data-form="login"]').style.display !== 'none' ? 'loginBtn' : 'registerBtn';
+      document.getElementById(active)?.click();
+    }
+  });
+
+  // Init tab display
+  document.querySelector('[data-form="login"]').style.display = 'block';
+</script>
+</body>
+</html>
